@@ -146,25 +146,30 @@ char* getIPAt(int ttl, std::string target) {
 
 
 int main() {
-    std::string target = "seansgame.com";
+    while (true) {
+        std::string target;
+        std::cout << "Maproute target: ";
+        std::getline(std::cin, target);
 
-    int ttl = 0;
-    std::string prev_ip;
-    std::string curr_ip;
+        int ttl = 0;
+        std::string prev_ip;
+        std::string curr_ip;
 
-    do {
-        prev_ip = curr_ip;
-        ttl++;
-        char* raw_ip = getIPAt(ttl, target);
-        curr_ip = raw_ip != nullptr ? std::string(raw_ip) : "<no-ip>";
+        do {
+            prev_ip = curr_ip;
+            ttl++;
+            char* raw_ip = getIPAt(ttl, target);
+            curr_ip = raw_ip != nullptr ? std::string(raw_ip) : "<no-ip>";
+            if (curr_ip != "<no-ip>")
+                AS asn = asn.fromIP(IPV4(curr_ip));
+            if (curr_ip != "<no-ip>") {
+                std::cout << "Translate to and from IPv4 object: " << IPV4(curr_ip).toString() << std::endl;
+            }
 
-        if (curr_ip != "<no-ip>") {
-            std::cout << "Translate to and from IPv4 object: " << IPV4(curr_ip).toString() << std::endl;
+            std::cout << curr_ip << std::endl;
         }
-
-        std::cout << curr_ip << std::endl;
+        while (curr_ip != prev_ip || (curr_ip == "<no-ip>" && prev_ip == "<no-ip>"));
     }
-    while (curr_ip != prev_ip);
 
     return 0;
 }
