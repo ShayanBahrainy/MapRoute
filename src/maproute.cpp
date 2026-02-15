@@ -13,7 +13,8 @@
 #include <unistd.h>
 #include <netdb.h>
 
-#include "internet.h"
+#include "IP.h"
+#include "AS.h"
 
 const int BUFFER_SIZE = 1500; //MTU
 
@@ -49,7 +50,15 @@ int send_ping(struct addrinfo* addrinfo, int ttl, char*& response, int& response
 
     int packet_len, recv_len;
 
-    int sock = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
+    int protocol;
+    if (addrinfo->ai_family == AF_INET) {
+        protocol = IPPROTO_ICMP;
+    }
+    else {
+        protocol = IPPROTO_ICMPV6;
+    }
+
+    int sock = socket(addrinfo->ai_family, SOCK_RAW, protocol);
 
     if (sock < 0) {
         perror("socket");
@@ -113,7 +122,7 @@ int send_ping(struct addrinfo* addrinfo, int ttl, char*& response, int& response
 }
 
 
-char* getIPAt(int ttl, std::string target) {
+const char* getIPAt(int ttl, std::string target) {
     struct addrinfo* addrinfo;
 
     if (getaddrinfo(target.c_str(), NULL, NULL, &addrinfo) < 0) {
@@ -141,9 +150,14 @@ char* getIPAt(int ttl, std::string target) {
     icmp = (struct icmp*) (response + ip_len);
     data_len = (recvlen - ip_len);
 
-    return inet_ntoa(ip->ip_src);
-}
 
+    socklen_t size = INET_ADDRSTRLEN;
+    char* buffer = new char[size];
+
+    inet_ntop(AF_INET, &ip->ip_src, buffer, size);
+
+    return buffer;
+}
 
 int main() {
     while (true) {
@@ -158,13 +172,10 @@ int main() {
         do {
             prev_ip = curr_ip;
             ttl++;
-            char* raw_ip = getIPAt(ttl, target);
+            const char* raw_ip = getIPAt(ttl, target);
             curr_ip = raw_ip != nullptr ? std::string(raw_ip) : "<no-ip>";
             if (curr_ip != "<no-ip>")
                 AS asn = asn.fromIP(IPV4(curr_ip));
-            if (curr_ip != "<no-ip>") {
-                std::cout << "Translate to and from IPv4 object: " << IPV4(curr_ip).toString() << std::endl;
-            }
 
             std::cout << curr_ip << std::endl;
         }

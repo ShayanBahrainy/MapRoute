@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 
-add_executable(maproute src/maproute.cpp src/internet.cpp)
+add_executable(maproute src/maproute.cpp src/IP.cpp src/AS.cpp)
 
 include(FetchContent)
 FetchContent_Declare(cpr GIT_REPOSITORY https://github.com/libcpr/cpr.git

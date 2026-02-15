@@ -1,8 +1,8 @@
 #include <array>
 #include <netdb.h>
 #include <string>
-#include <map>
 
+#pragma once
 class IPV4 {
     private:
         std::array<uint8_t, 4> ipData;
@@ -18,14 +18,3 @@ class IPV4 {
 
 };
 
-class AS {
-    static std::map<IPV4, AS> cache;
-
-    int number;
-    std::string name;
-
-    public:
-        AS(int number, std::string name);
-        static AS fromIP(const IPV4& ip);
-        std::string toString() const;
-};
