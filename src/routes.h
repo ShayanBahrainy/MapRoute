@@ -1,6 +1,6 @@
 #include <string>
 #include <vector>
-#include "internet.h"
+#include "IP.h"
 
 class IPV4Path {
     private:
@@ -11,13 +11,15 @@ class IPV4Path {
         IPV4Path();
 
         void add(IPV4 ip);
-        int size();
+        int size() const;
+
+        static IPV4Path* fromDomain(std::string domain);
+        static IPV4Path* fromIP(IPV4 target);
 
         std::string toString() const;
 };
 
 class ASPath {
-    ASPath(const IPV4Path& ipPath) {
-
-    }
+    public:
+        ASPath(const IPV4Path& ipPath);
 };
