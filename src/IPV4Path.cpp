@@ -13,7 +13,7 @@
 #include <netdb.h>
 
 
-#include "routes.h"
+#include "IPV4Path.h"
 #include "IP.h"
 
 const int BUFFER_SIZE = 1500; //MTU
@@ -125,7 +125,6 @@ int send_ping(struct addrinfo* addrinfo, int ttl, char*& response, int& response
         return -1;
     }
     else if (errno == EWOULDBLOCK) {
-        //std::cout << "-----------" << "Timeout" << "-----------" << std::endl;
         return -1;
     }
 
@@ -188,8 +187,16 @@ IPV4Path* IPV4Path::fromAddress(struct addrinfo* addrinfo) {
 
         ipPath->add(IPV4(curr_ip));
     }
+
     while (curr_ip != prev_ip && !(curr_ip == NO_IP && prev_ip == NO_IP));
 
     return ipPath;
+}
 
+IPV4& IPV4Path::at(int i) {
+    return path.at(i);
+}
+
+const IPV4& IPV4Path::at(int i) const{
+    return path.at(i);
 }

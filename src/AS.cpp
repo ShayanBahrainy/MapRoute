@@ -7,6 +7,8 @@
 
 std::map<IPV4, AS> AS::cache;
 
+const std::string NOT_ANNOUNCED = "<Not-Announced>";
+
 AS::AS(int number, std::string name) {
     this->number = number;
     this->name = name;
@@ -25,19 +27,15 @@ AS getAS(const IPV4& ip) {
         return AS(result["data"]["asns"][0]["asn"], result["data"]["asns"][0]["holder"]);
     }
     else {
-        return AS(-1, "<Not-Announced>");
+        return AS(-1, NOT_ANNOUNCED);
     }
 }
 
 AS AS::fromIP(const IPV4& ip) {
     if (AS::cache.count(ip) > 0) {
-        std::cout << "Retrieved from cache for ip " << ip.toString() << std::endl;
-
         return AS::cache.at(ip);
     }
     else {
-        std::cout << "Performing lookup for ip " << ip.toString() << std::endl;
-
         AS as = getAS(ip);
 
         AS::cache.insert({ip, as});
@@ -48,12 +46,15 @@ AS AS::fromIP(const IPV4& ip) {
     return AS(0, "1");
 }
 
-std::string AS::toString() const {
-    std::ostringstream oss;
-    oss << name;
-    oss << " (AS ";
-    oss << number;
-    oss << ")";
+bool AS::operator==(const AS& other) const {
+    return this->number == other.number;
+}
 
-    return oss.str();
+std::ostream& operator<<(std::ostream& ostream, const AS& as) {
+    ostream << as.name;
+    ostream << " (AS ";
+    ostream << as.number;
+    ostream << ")";
+
+    return ostream;
 }

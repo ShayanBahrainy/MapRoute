@@ -14,6 +14,9 @@ class IPV4Path {
 
         void add(IPV4 ip);
         int size() const;
+        IPV4& at(int i);
+        const IPV4& at(int i) const;
+
 
         static IPV4Path* fromDomain(std::string domain);
         static IPV4Path* fromIP(IPV4 target);
@@ -21,7 +24,3 @@ class IPV4Path {
         std::string toString() const;
 };
 
-class ASPath {
-    public:
-        ASPath(const IPV4Path& ipPath);
-};
