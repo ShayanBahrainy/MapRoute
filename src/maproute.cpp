@@ -173,13 +173,15 @@ int main() {
             prev_ip = curr_ip;
             ttl++;
             const char* raw_ip = getIPAt(ttl, target);
-            curr_ip = raw_ip != nullptr ? std::string(raw_ip) : "<no-ip>";
-            if (curr_ip != "<no-ip>")
+            curr_ip = raw_ip != nullptr ? std::string(raw_ip) : "null ptr ip";
+            if (curr_ip != "null ptr ip")
                 AS asn = asn.fromIP(IPV4(curr_ip));
 
-            std::cout << curr_ip << std::endl;
+            std::cout << curr_ip << (curr_ip == prev_ip ? " equal" : " not equal") << " to " << prev_ip << std::endl;
         }
-        while (curr_ip != prev_ip || (curr_ip == "<no-ip>" && prev_ip == "<no-ip>"));
+        while (curr_ip != prev_ip && !(curr_ip == "null ptr ip" && prev_ip == "null ptr ip"));
+
+        std::cout << "Numbers of hops: " << ttl  - 1<< std::endl;
     }
 
     return 0;

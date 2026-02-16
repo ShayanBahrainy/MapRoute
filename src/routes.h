@@ -6,6 +6,8 @@ class IPV4Path {
     private:
         std::vector<IPV4> path;
 
+        static IPV4Path* fromAddress(struct addrinfo* addrinfo);
+
     public:
         IPV4Path(std::vector<IPV4> path);
         IPV4Path();
