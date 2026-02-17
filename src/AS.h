@@ -16,6 +16,9 @@ class AS {
 
         static AS fromIP(const IPV4& ip);
 
+        int getASN() const;
+        std::string getName() const;
+
         friend std::ostream& operator<<(std::ostream& stream, const AS& as);
 
         bool operator==(const AS& other) const;

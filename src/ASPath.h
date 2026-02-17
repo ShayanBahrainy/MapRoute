@@ -10,5 +10,4 @@ class ASPath {
         ASPath(const IPV4Path& ipPath);
 
         friend std::ostream& operator<<(std::ostream& ostream, const ASPath& asPath);
-
 };

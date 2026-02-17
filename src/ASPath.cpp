@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "ASPath.h"
 #include "AS.h"
 
@@ -11,6 +13,8 @@ ASPath::ASPath(const IPV4Path& IPpath) {
         if (currAS == prevAS) continue;
 
         path.push_back(currAS);
+
+        prevAS = currAS;
     }
 }
 
