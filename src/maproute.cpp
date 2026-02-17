@@ -18,32 +18,14 @@
 
 const int BUFFER_SIZE = 1500; //MTU
 
-unsigned short chksum(unsigned short* packet, int len) {
-    int i;
-    unsigned int sum = 0;
-    unsigned short *ptr;
-    unsigned short cksm;
-
-    for (i = len, ptr = packet; i > 1 ; i-=2) {
-        sum += *ptr;
-        ptr++;
-    }
-
-    if (i == 1) {
-        sum += *((unsigned char*) ptr);
-    }
-
-    sum = (sum & 0xffff) + (sum >> 16);
-
-    sum += (sum >> 16);
-
-    cksm = ~sum;
-
-    return cksm;
-}
-
 int send_ping(struct addrinfo* addrinfo, int ttl, char*& response, int& responselen ) {
-    char sendbuf[BUFFER_SIZE], recvbuf[BUFFER_SIZE], controlbuf[BUFFER_SIZE];
+    std::cout << "maproute.cpp: " << addrToString(addrinfo) << std::endl;
+    char *sendbuf, *recvbuf, *controlbuf;
+
+    sendbuf = new char[BUFFER_SIZE];
+    recvbuf = new char[BUFFER_SIZE];
+    controlbuf = new char[BUFFER_SIZE];
+
     icmp *icmp;
     iovec iov;
     msghdr msg;
@@ -51,12 +33,7 @@ int send_ping(struct addrinfo* addrinfo, int ttl, char*& response, int& response
     int packet_len, recv_len;
 
     int protocol;
-    if (addrinfo->ai_family == AF_INET) {
-        protocol = IPPROTO_ICMP;
-    }
-    else {
-        protocol = IPPROTO_ICMPV6;
-    }
+    protocol = IPPROTO_ICMP;
 
     int sock = socket(addrinfo->ai_family, SOCK_RAW, protocol);
 
@@ -118,6 +95,9 @@ int send_ping(struct addrinfo* addrinfo, int ttl, char*& response, int& response
     response = recvbuf;
     responselen = recv_len;
 
+    delete[] controlbuf;
+    delete[] sendbuf;
+
     return 0;
 }
 
@@ -155,6 +135,8 @@ const char* getIPAt(int ttl, std::string target) {
     char* buffer = new char[size];
 
     inet_ntop(AF_INET, &ip->ip_src, buffer, size);
+
+    delete response;
 
     return buffer;
 }
