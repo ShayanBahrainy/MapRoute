@@ -1,11 +1,27 @@
 #include <netdb.h>
+#include <netinet/in.h>
 #include <sstream>
 #include <string>
 #include <iostream>
 #include <cpr/cpr.h>
 #include <nlohmann/json.hpp>
+#include <sys/socket.h>
+#include <arpa/inet.h>
 #include <tuple>
 #include "IP.h"
+
+std::string addrToString(const struct addrinfo *addrinfo) {
+    socklen_t size = INET_ADDRSTRLEN;
+    char* buffer = new char[size];
+
+    inet_ntop(AF_INET, &(((struct sockaddr_in*) addrinfo->ai_addr)->sin_addr), buffer, size);
+
+    std::string result(buffer);
+
+    delete[] buffer;
+
+    return result;
+}
 
 unsigned short chksum(unsigned short* packet, int len) {
     int i;
@@ -74,7 +90,15 @@ bool IPV4::operator<(const IPV4& other) const {
     return std::tie(ipData[0], ipData[1], ipData[2], ipData[3]) < std::tie(other.ipData[0], other.ipData[1], other.ipData[2], other.ipData[3]);
 }
 
+bool IPV4::isNotFound() const {
+    return isNoIP;
+}
+
 std::string IPV4::toString() const {
+    if (isNoIP) {
+        return "-.-.-.-";
+    }
+
     std::ostringstream out;
 
     out << (int) ipData[0];

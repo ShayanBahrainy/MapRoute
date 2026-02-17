@@ -6,6 +6,8 @@ const std::string NO_IP = "<no-ip>";
 
 unsigned short chksum(unsigned short* packet, int len);
 
+std::string addrToString(const struct addrinfo* addrinfo);
+
 #pragma once
 class IPV4 {
     private:
@@ -14,6 +16,8 @@ class IPV4 {
         bool isNoIP;
 
     public:
+        bool isNotFound() const;
+
         IPV4(std::string ipString);
 
         ~IPV4();
