@@ -11,7 +11,7 @@
 #include <string>
 #include <unistd.h>
 #include <netdb.h>
-
+#include <iostream>
 
 #include "IPV4Path.h"
 #include "IP.h"
@@ -62,7 +62,10 @@ IPV4Path* IPV4Path::fromIP(IPV4 target) {
 }
 
 int send_ping(struct addrinfo* addrinfo, int ttl, char*& response, int& responselen ) {
-    char sendbuf[BUFFER_SIZE], recvbuf[BUFFER_SIZE], controlbuf[BUFFER_SIZE];
+    char* sendbuf = new char[BUFFER_SIZE];
+    char* recvbuf = new char[BUFFER_SIZE];
+    char* controlbuf = new char[BUFFER_SIZE];
+
     icmp *icmp;
     iovec iov;
     msghdr msg;
@@ -70,12 +73,8 @@ int send_ping(struct addrinfo* addrinfo, int ttl, char*& response, int& response
     int packet_len, recv_len;
 
     int protocol;
-    if (addrinfo->ai_family == AF_INET) {
-        protocol = IPPROTO_ICMP;
-    }
-    else {
-        protocol = IPPROTO_ICMPV6;
-    }
+    protocol = IPPROTO_ICMP;
+
 
     int sock = socket(addrinfo->ai_family, SOCK_RAW, protocol);
 
@@ -120,14 +119,28 @@ int send_ping(struct addrinfo* addrinfo, int ttl, char*& response, int& response
     msg.msg_control = controlbuf;
     msg.msg_controllen = BUFFER_SIZE;
 
-    if ((recv_len = recvmsg(sock, &msg, 0)) < 0 && errno != EWOULDBLOCK) {
-        perror("recieve");
-        return -1;
-    }
-    else if (errno == EWOULDBLOCK) {
-        return -1;
-    }
+    ip* ip;
+    int ip_len;
+    int data_len;
 
+    while (1) {
+        recv_len = recvmsg(sock, &msg, 0);
+
+        if (recv_len < 0 && errno != EWOULDBLOCK && errno != EAGAIN) {
+            perror("recieve");
+            return -1;
+        }
+        else if (recv_len < 0 && (errno == EWOULDBLOCK || errno == EAGAIN)) {
+            return -1;
+        }
+
+        ip = (struct ip*) recvbuf;
+        ip_len = ip->ip_hl << 2;
+
+        icmp = (struct icmp*) (recvbuf + ip_len);
+        data_len = (recv_len - ip_len);
+        if (icmp->icmp_type == ICMP_TIME_EXCEEDED || icmp->icmp_type == ICMP_ECHOREPLY) break;
+    }
 
     shutdown(sock, SHUT_RDWR);
     close(sock);
@@ -136,11 +149,15 @@ int send_ping(struct addrinfo* addrinfo, int ttl, char*& response, int& response
     response = recvbuf;
     responselen = recv_len;
 
+    delete[] sendbuf;
+    delete[] controlbuf;
+
     return 0;
 }
 
+IPV4Path* IPV4Path::fromAddress(struct addrinfo* addrinfo) {
+    IPV4Path* ipPath = new IPV4Path;
 
-const char* getIPAt(struct addrinfo* addrinfo, int ttl) {
 
     char* response;
     int recvlen;
@@ -150,29 +167,6 @@ const char* getIPAt(struct addrinfo* addrinfo, int ttl) {
     int ip_len, data_len;
 
 
-    if (send_ping(addrinfo, ttl, response, recvlen) < 0) {
-        return nullptr;
-    }
-
-    ip = (struct ip*) response;
-    ip_len = ip->ip_hl << 2;
-
-    icmp = (struct icmp*) (response + ip_len);
-    data_len = (recvlen - ip_len);
-
-
-    socklen_t size = INET_ADDRSTRLEN;
-    char* buffer = new char[size];
-
-    inet_ntop(AF_INET, &ip->ip_src, buffer, size);
-
-    return buffer;
-}
-
-IPV4Path* IPV4Path::fromAddress(struct addrinfo* addrinfo) {
-
-    IPV4Path* ipPath = new IPV4Path;
-
     int ttl = 0;
     std::string prev_ip;
     std::string curr_ip;
@@ -181,14 +175,33 @@ IPV4Path* IPV4Path::fromAddress(struct addrinfo* addrinfo) {
         prev_ip = curr_ip;
         ttl++;
 
-        const char* raw_ip = getIPAt(addrinfo, ttl);
+        if (send_ping(addrinfo, ttl, response, recvlen) < 0) {
+            ipPath->add(IPV4(NO_IP));
+            continue;
+        }
 
-        curr_ip = raw_ip != nullptr ? std::string(raw_ip) : NO_IP;
+        ip = (struct ip*) response;
+        ip_len = ip->ip_hl << 2;
 
-        ipPath->add(IPV4(curr_ip));
+        icmp = (struct icmp*) (response + ip_len);
+        data_len = (recvlen - ip_len);
+
+        socklen_t size = INET_ADDRSTRLEN;
+        char* buffer = new char[size];
+
+        inet_ntop(AF_INET, &ip->ip_src, buffer, size);
+
+        ipPath->add(IPV4(std::string(buffer)));
+
+        delete[] buffer;
+
+        //If it is a reply, we are done, otherwise, keep going
+        if (icmp->icmp_type == ICMP_ECHOREPLY) {
+            break;
+        }
     }
 
-    while (curr_ip != prev_ip && !(curr_ip == NO_IP && prev_ip == NO_IP));
+    while (ttl < 30);
 
     return ipPath;
 }
@@ -199,4 +212,12 @@ IPV4& IPV4Path::at(int i) {
 
 const IPV4& IPV4Path::at(int i) const{
     return path.at(i);
+}
+
+void IPV4Path::print() const {
+    for (int i = 0; i < path.size(); i++) {
+        std::cout << path.at(i).toString() << " ";
+        if (i < path.size() - 1) std::cout << "---> ";
+    }
+    std::cout << std::endl;
 }
