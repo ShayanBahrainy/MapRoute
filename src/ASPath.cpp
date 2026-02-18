@@ -3,19 +3,26 @@
 #include "ASPath.h"
 #include "AS.h"
 
-ASPath::ASPath(const IPV4Path& IPpath) {
-    if (IPpath.size() == 0) return;
+ASPath::ASPath() {
 
-    AS prevAS = AS::fromIP(IPpath.at(0));
-    path.push_back(prevAS);
-    for (int i = 1; i < IPpath.size(); i++) {
+}
+
+void ASPath::push(const AS& as) {
+    if (path.size() > 0 && path.back() == as) return;
+
+    path.push_back(as);
+}
+
+ASPath* ASPath::fromIpPath(const IPV4Path& IPpath) {
+    ASPath* newPath = new ASPath;
+
+    for (int i = 0; i < IPpath.size(); i++) {
         AS currAS = AS::fromIP(IPpath.at(i));
-        if (currAS == prevAS) continue;
 
-        path.push_back(currAS);
-
-        prevAS = currAS;
+        newPath->push(currAS);
     }
+
+    return newPath;
 }
 
 std::ostream& operator<<(std::ostream& ostream, const ASPath& asPath)  {

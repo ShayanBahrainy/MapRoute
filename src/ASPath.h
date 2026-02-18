@@ -7,7 +7,10 @@ class ASPath {
         std::vector<AS> path;
 
     public:
-        ASPath(const IPV4Path& ipPath);
+        ASPath();
+        void push(const AS& as);
+
+        static ASPath* fromIpPath(const IPV4Path& IPpath);
 
         friend std::ostream& operator<<(std::ostream& ostream, const ASPath& asPath);
 };
