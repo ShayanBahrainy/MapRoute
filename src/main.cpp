@@ -3,7 +3,6 @@
 #include <cstdlib>
 #include <ctime>
 #include <future>
-#include <iostream>
 
 #include "IPV4Path.h"
 #include "ASPath.h"
@@ -11,7 +10,6 @@
 
 const int WIDTH = 1000;
 const int HEIGHT = 800;
-
 
 std::future<IPV4Path*> futureIP;
 std::future<ASPath*> futureAS;
@@ -102,10 +100,13 @@ int main() {
     while (!WindowShouldClose()) {
         BeginDrawing();
         ClearBackground(BLACK);
-        DrawCircle(60, 60, 50, GREEN);
 
         int inputWidth = MeasureText(typed.c_str(), 60) + 20 > 300 ? MeasureText(typed.c_str(), 60) + 20 : 300;
+        int inputX = GetScreenWidth()/2 - inputWidth/2;
         DrawRectangle(GetScreenWidth()/2 - inputWidth/2, 10, inputWidth, 70, WHITE);
+        std::string targetText = "Target: ";
+        int targetTextWidth = MeasureText(targetText.c_str(), 60);
+        DrawText(targetText.c_str(), inputX - targetTextWidth/2 - inputWidth/2, 10, 60, WHITE);
 
         if (state != ACCEPT_INPUT) {
             if (loadingIconCounter % 60 == 0) {
@@ -143,7 +144,6 @@ int main() {
 
         if (IsKeyPressed(KEY_BACKSPACE) && state == ACCEPT_INPUT) typed = typed.substr(0, typed.size() - 1);
         if (IsKeyPressed(KEY_ENTER) && state == ACCEPT_INPUT) {
-            std::cout << typed << std::endl;
             futureIP = std::async(std::launch::async, IPV4Path::fromDomain, typed);
             state = WAITIP;
         }
@@ -159,9 +159,9 @@ int main() {
                 state = ACCEPT_INPUT;
             }
             else {
-            futureAS = std::async(std::launch::async, ASPath::fromIpPath, *ipPath);
+                futureAS = std::async(std::launch::async, ASPath::fromIpPath, *ipPath);
 
-            state = WAITAS;
+                state = WAITAS;
             }
         }
 
