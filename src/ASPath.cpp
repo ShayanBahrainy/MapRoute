@@ -3,6 +3,14 @@
 #include "ASPath.h"
 #include "AS.h"
 
+int ASPath::size() const {
+    return path.size();
+}
+
+AS& ASPath::at(int i) {
+    return path.at(i);
+}
+
 ASPath::ASPath() {
 
 }

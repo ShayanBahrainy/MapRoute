@@ -22,6 +22,10 @@ enum ProgramState {ACCEPT_INPUT, WAITIP, WAITAS};
 
 ProgramState state = ACCEPT_INPUT;
 
+enum ViewMode {IP_PATH, AS_PATH};
+
+ViewMode view_mode = IP_PATH;
+
 int loadingIconCounter = 0;
 
 enum LoadingIconState {ONE, TWO, THREE};
@@ -35,7 +39,7 @@ int main() {
     while (!WindowShouldClose()) {
         BeginDrawing();
         ClearBackground(BLACK);
-        DrawCircle(60, GetScreenHeight()/2, 50, GREEN);
+        DrawCircle(60, 60, 50, GREEN);
 
         int inputWidth = MeasureText(typed.c_str(), 60) + 20 > 300 ? MeasureText(typed.c_str(), 60) + 20 : 300;
         DrawRectangle(GetScreenWidth()/2 - inputWidth/2, 10, inputWidth, 70, WHITE);
@@ -100,22 +104,77 @@ int main() {
             state = ACCEPT_INPUT;
         }
 
-        if (ipPath != nullptr) {
+        if (ipPath != nullptr && view_mode == IP_PATH) {
+            const float STEP_X = (GetScreenWidth() - 50) / (float) (ipPath->size() + 1);
+            const float STEP_Y = (GetScreenHeight() - 50) / (float) (ipPath->size() + 1);
+            float prev_x = 60;
+            float prev_y = 60;
+
             for (int i = 0; i < ipPath->size(); i++) {
-                const int verticalVariance = 50;
-                const int X = (250 * (i + 1)) + 60;
-                const int Y = verticalVariance * (i % 2 == 1 ? 1 : -1) + GetScreenHeight()/2;
+                const int VERTICAL_VARIANCE = 50;
+                const int X = (STEP_X * (i + 1)) + 60;
+                const int Y = (STEP_Y * (i + 1)) + 60 + (VERTICAL_VARIANCE * (i % 2 == 1 ? 1 : -1));
 
                 if (CheckCollisionPointCircle({static_cast<float>(X), static_cast<float>(Y)}, {static_cast<float>(GetMouseX()), static_cast<float>(GetMouseY())}, 50)) {
                     std::string text = ipPath->at(i).toString();
                     int textWidth = MeasureText(text.c_str(), 50);
-                    DrawText(text.c_str(), X - textWidth/2, Y - 200, 50, WHITE);
+                    DrawText(text.c_str(), X - textWidth/2 < GetScreenWidth() ? X - textWidth/2 : X - textWidth, Y - 200 > 0 ? Y - 200 : Y + 200, 50, WHITE);
                 }
 
+                DrawLine(prev_x, prev_y, X, Y, WHITE);
                 DrawCircle(X, Y, 50, GREEN);
+
+                prev_x = X;
+                prev_y = Y;
             }
         }
 
+        if (asPath != nullptr && view_mode == AS_PATH) {
+            const float STEP_X = (GetScreenWidth() - 50) / (float) (asPath->size() + 1);
+            const float STEP_Y = (GetScreenHeight() - 50) / (float) (asPath->size() + 1);
+            float prev_x = 60;
+            float prev_y = 60;
+
+            for (int i = 0; i < asPath->size(); i++) {
+                const int VERTICAL_VARIANCE = 50;
+                const int X = (STEP_X * (i + 1)) + 60;
+                const int Y = (STEP_Y * (i + 1)) + 60 + (VERTICAL_VARIANCE * (i % 2 == 1 ? 1 : -1));
+
+                if (CheckCollisionPointCircle({static_cast<float>(X), static_cast<float>(Y)}, {static_cast<float>(GetMouseX()), static_cast<float>(GetMouseY())}, 50)) {
+                    std::string topText = std::to_string(asPath->at(i).getASN());
+                    int topTextWidth = MeasureText(topText.c_str(), 50);
+                    DrawText(topText.c_str(), X - topTextWidth/2 < GetScreenWidth() ? X - topTextWidth/2 : X - topTextWidth, Y - 200 > 0 ? Y - 200 : Y + 200, 50, WHITE);
+
+                    std::string bottomText = asPath->at(i).getName();
+                    int bottomTextWidth = MeasureText(bottomText.c_str(), 50);
+                    DrawText(bottomText.c_str(), X - bottomTextWidth/2 < GetScreenWidth() ? X - bottomTextWidth/2 : X - bottomTextWidth, Y + 300 < GetScreenHeight() - 50 ? Y + 300 : Y - 300, 50, WHITE);
+                }
+
+                DrawLine(prev_x, prev_y, X, Y, WHITE);
+                DrawCircle(X, Y, 50, GREEN);
+
+                prev_x = X;
+                prev_y = Y;
+            }
+        }
+
+        const int X = GetScreenWidth() - 10 - 100;
+
+        Rectangle ipButton = {static_cast<float>(X), 10, 100, 60};
+        Rectangle asButton = {static_cast<float>(X - 100), 10, 100, 60};
+
+        DrawRectangleRec(ipButton, view_mode == IP_PATH ? GREEN : WHITE);
+        DrawText("IP", ipButton.x + 10, ipButton.y, 60, view_mode == IP_PATH ? WHITE : GREEN);
+        DrawRectangleRec(asButton, view_mode == AS_PATH ? GREEN : WHITE);
+        DrawText("AS", asButton.x + 10, asButton.y, 60, view_mode == AS_PATH ? WHITE : GREEN);
+
+        if (CheckCollisionPointRec(Vector2{static_cast<float>(GetMouseX()), static_cast<float>(GetMouseY())}, ipButton) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+            view_mode = IP_PATH;
+        }
+
+        if (CheckCollisionPointRec(Vector2{static_cast<float>(GetMouseX()), static_cast<float>(GetMouseY())}, asButton) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+            view_mode = AS_PATH;
+        }
 
         EndDrawing();
     }

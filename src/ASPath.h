@@ -7,6 +7,9 @@ class ASPath {
         std::vector<AS> path;
 
     public:
+        int size() const;
+        AS& at(int i);
+
         ASPath();
         void push(const AS& as);
 
