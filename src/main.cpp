@@ -169,6 +169,8 @@ int main() {
         }
 
         if (ipPath != nullptr && view_mode == IP_PATH) {
+            DrawCircle(60, 60, 50, GREEN);
+
             const float STEP_X = (GetScreenWidth() - 50) / (float) (ipPath->size() + 1);
             const float STEP_Y = (GetScreenHeight() - 50) / (float) (ipPath->size() + 1);
             float prev_x = 60;
@@ -194,6 +196,9 @@ int main() {
         }
 
         if (asPath != nullptr && view_mode == AS_PATH) {
+            DrawCircle(60, 60, 50, GREEN);
+
+
             const float STEP_X = (GetScreenWidth() - 50) / (float) (asPath->size() + 1);
             const float STEP_Y = (GetScreenHeight() - 50) / (float) (asPath->size() + 1);
             float prev_x = 60;
