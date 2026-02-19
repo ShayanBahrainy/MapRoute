@@ -26,12 +26,66 @@ enum ViewMode {IP_PATH, AS_PATH};
 
 ViewMode view_mode = IP_PATH;
 
+enum AppMode {EXPLORE, PLAY};
+
+AppMode appMode = EXPLORE;
+
 int loadingIconCounter = 0;
 
 enum LoadingIconState {ONE, TWO, THREE};
 LoadingIconState loadingState;
+int goal;
+//True is greater than, false is less than or equal to
+bool goalSign;
+
+bool goalMessage;
+int goalMessageTimer;
+
+void doGoalStuff() {
+    std::string goalText = "Try to get a IP path";
+    goalText += (goalSign ? " greater than " : " less than or equal to ");
+    goalText += std::to_string(goal);
+
+    int goalTextWidth = MeasureText(goalText.c_str(), 60);
+    if (!goalMessage)
+        DrawText(goalText.c_str(), (GetScreenWidth() / 2) - (goalTextWidth/2), 0.9f * GetScreenHeight(), 60, WHITE);
+
+    //Only start the message, when it isn't active, we've met the goal, and we are done processing.
+    if (!goalMessage && ipPath && ((ipPath->size() > goal && goalSign) || (ipPath->size() <= goal && !goalSign)) && state == ACCEPT_INPUT) {
+        goalMessage = true;
+        goalMessageTimer = 1500;
+    }
+
+    if (goalMessage) {
+        std::string goalMessage = "Good Job! You found a cool path!";
+        int goalMessageWidth = MeasureText(goalMessage.c_str(), 60);
+        DrawText(goalMessage.c_str(), GetScreenWidth()/2 - goalMessageWidth/2, 0.9 * GetScreenHeight(), 60, WHITE);
+        goalMessageTimer--;
+    }
+
+    if (goalMessageTimer < 0) {
+        goalMessage = false;
+
+        delete ipPath;
+        delete asPath;
+
+        ipPath = nullptr;
+        asPath = nullptr;
+
+        goal = rand() % 16 + 5;
+        goalSign = rand() % 2 == 0;
+        goalMessageTimer = 600;
+        goalMessage = false;
+    }
+}
 
 int main() {
+    srand(time(NULL));
+
+    goal = rand() % 16 + 5;
+    goalSign = rand() % 2 == 0;
+    goalMessageTimer = -1;
+    goalMessage = false;
 
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(WIDTH, HEIGHT, "MapRoute");
@@ -160,8 +214,8 @@ int main() {
 
         const int X = GetScreenWidth() - 10 - 100;
 
-        Rectangle ipButton = {static_cast<float>(X), 10, 100, 60};
-        Rectangle asButton = {static_cast<float>(X - 100), 10, 100, 60};
+        Rectangle ipButton = {static_cast<float>(X), 90, 100, 60};
+        Rectangle asButton = {static_cast<float>(X - 100), 90, 100, 60};
 
         DrawRectangleRec(ipButton, view_mode == IP_PATH ? GREEN : WHITE);
         DrawText("IP", ipButton.x + 10, ipButton.y, 60, view_mode == IP_PATH ? WHITE : GREEN);
@@ -174,6 +228,21 @@ int main() {
 
         if (CheckCollisionPointRec(Vector2{static_cast<float>(GetMouseX()), static_cast<float>(GetMouseY())}, asButton) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
             view_mode = AS_PATH;
+        }
+
+        if (appMode == PLAY) {
+            doGoalStuff();
+        }
+
+        std::string modeText = std::string(appMode == PLAY ? "Look around" : "Challenge");
+        int modeTextWidth = MeasureText(modeText.c_str(), 60);
+
+        Rectangle appModeButton = {static_cast<float>(GetScreenWidth() - modeTextWidth - 30), 10, static_cast<float>(modeTextWidth + 20), 70};
+        DrawRectangleRec(appModeButton, GREEN);
+        DrawText(modeText.c_str(), appModeButton.x + 10, appModeButton.y, 60, WHITE);
+        if (CheckCollisionPointRec(Vector2{static_cast<float>(GetMouseX()), static_cast<float>(GetMouseY())}, appModeButton) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+            if (appMode == PLAY) appMode = EXPLORE;
+            else appMode = PLAY;
         }
 
         EndDrawing();
