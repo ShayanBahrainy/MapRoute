@@ -1,4 +1,7 @@
 #include <chrono>
+#include <cstddef>
+#include <cstdlib>
+#include <ctime>
 #include <future>
 #include <iostream>
 
@@ -34,6 +37,7 @@ int loadingIconCounter = 0;
 
 enum LoadingIconState {ONE, TWO, THREE};
 LoadingIconState loadingState;
+
 int goal;
 //True is greater than, false is less than or equal to
 bool goalSign;
@@ -92,6 +96,7 @@ int main() {
     errorTimer = -1;
 
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
+    SetTargetFPS(60);
     InitWindow(WIDTH, HEIGHT, "MapRoute");
 
     while (!WindowShouldClose()) {
