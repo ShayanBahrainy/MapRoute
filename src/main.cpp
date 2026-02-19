@@ -41,6 +41,8 @@ bool goalSign;
 bool goalMessage;
 int goalMessageTimer;
 
+int errorTimer;
+
 void doGoalStuff() {
     std::string goalText = "Try to get a IP path";
     goalText += (goalSign ? " greater than " : " less than or equal to ");
@@ -86,6 +88,8 @@ int main() {
     goalSign = rand() % 2 == 0;
     goalMessageTimer = -1;
     goalMessage = false;
+
+    errorTimer = -1;
 
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(WIDTH, HEIGHT, "MapRoute");
@@ -145,9 +149,15 @@ int main() {
             delete ipPath;
             ipPath = futureIP.get();
 
+            if (ipPath == nullptr) {
+                errorTimer = 600;
+                state = ACCEPT_INPUT;
+            }
+            else {
             futureAS = std::async(std::launch::async, ASPath::fromIpPath, *ipPath);
 
             state = WAITAS;
+            }
         }
 
         if (state == WAITAS && futureAS.wait_for(std::chrono::milliseconds(0)) == std::future_status::ready) {
@@ -243,6 +253,18 @@ int main() {
         if (CheckCollisionPointRec(Vector2{static_cast<float>(GetMouseX()), static_cast<float>(GetMouseY())}, appModeButton) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
             if (appMode == PLAY) appMode = EXPLORE;
             else appMode = PLAY;
+        }
+
+        if (errorTimer > 0) {
+
+            std::string errorMessage = "The given address is not valid. Please try again.";
+            int errorMessageWidth = MeasureText(errorMessage.c_str(), 90);
+
+            Rectangle errorRectangle = {GetScreenWidth()/2.0f - errorMessageWidth/2.0f - 25, GetScreenHeight()/2.0f - 100, static_cast<float>(errorMessageWidth + 50), 400};
+            DrawRectangleRec(errorRectangle, PURPLE);
+
+            DrawText(errorMessage.c_str(), GetScreenWidth()/2 - errorMessageWidth/2, GetScreenHeight()/2, 90, WHITE);
+            errorTimer--;
         }
 
         EndDrawing();
