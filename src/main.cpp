@@ -22,6 +22,11 @@ enum ProgramState {ACCEPT_INPUT, WAITIP, WAITAS};
 
 ProgramState state = ACCEPT_INPUT;
 
+int loadingIconCounter = 0;
+
+enum LoadingIconState {ONE, TWO, THREE};
+LoadingIconState loadingState;
+
 int main() {
 
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
@@ -34,6 +39,35 @@ int main() {
 
         int inputWidth = MeasureText(typed.c_str(), 60) + 20 > 300 ? MeasureText(typed.c_str(), 60) + 20 : 300;
         DrawRectangle(GetScreenWidth()/2 - inputWidth/2, 10, inputWidth, 70, WHITE);
+
+        if (state != ACCEPT_INPUT) {
+            if (loadingIconCounter % 60 == 0) {
+                if (loadingState == ONE) loadingState = TWO;
+                else if (loadingState == TWO) loadingState = THREE;
+                else if (loadingState == THREE) loadingState = ONE;
+            }
+
+            switch(loadingState) {
+                case ONE:
+                    DrawText(".", GetScreenWidth()/2, 50, 70, GREEN);
+                    DrawText(".", GetScreenWidth()/2 + 10, 50, 60, GREEN);
+                    DrawText(".", GetScreenWidth()/2 + 20, 50, 60, GREEN);
+                    break;
+                case TWO:
+                    DrawText(".", GetScreenWidth()/2, 50, 60, GREEN);
+                    DrawText(".", GetScreenWidth()/2 + 10, 50, 70, GREEN);
+                    DrawText(".", GetScreenWidth()/2 + 20, 50, 60, GREEN);
+                    break;
+                case THREE:
+                    DrawText(".", GetScreenWidth()/2, 50, 60, GREEN);
+                    DrawText(".", GetScreenWidth()/2 + 10, 50, 60, GREEN);
+                    DrawText(".", GetScreenWidth()/2 + 20, 50, 70, GREEN);
+                    break;
+            }
+
+            loadingIconCounter++;
+        }
+
 
         int c = GetCharPressed();
         if (c >= 32 && c <= 125 && state == ACCEPT_INPUT){
