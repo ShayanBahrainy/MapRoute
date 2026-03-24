@@ -14,11 +14,14 @@ The two executables you can build with this script are `maproute` and `main`. Ma
 
 The easiest way to build is:
 ```
+# Ubuntu/Debian
+sudo apt install libcpr-dev libcurl4-openssl-dev libicu-dev
+
+# Then build:
 mkdir -p build
 cd build
 cmake ..
 make -j$(nproc)
-sudo setcap cap_net_raw+ep main
 ```
 
 # Ambitions
