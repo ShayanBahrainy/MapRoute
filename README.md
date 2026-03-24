@@ -12,9 +12,12 @@ You can use the `compile_and_run.sh` script, it compiles the executable, and als
 
 The two executables you can build with this script are `maproute` and `main`. Maproute was how I started writing the network code for this, and it's not too interesting.
 
-You can also build with:
+The easiest way to build is:
 ```
-cmake --build ./build
+mkdir -p build
+cd build
+cmake ..
+make -j$(nproc)
 sudo setcap cap_net_raw+ep main
 ```
 
