@@ -19,6 +19,7 @@ AS getAS(const IPV4& ip) {
 
     if (r.status_code != 200) {
         std::cout << "Error fetching AS; Status " << r.status_code << std::endl;
+        return AS(-1, NOT_VISIBLE);
     }
 
     nlohmann::json result = nlohmann::json::parse(r.text);
