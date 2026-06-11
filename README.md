@@ -12,14 +12,11 @@ You can use the `compile_and_run.sh` script, it compiles the executable, and als
 
 The two executables you can build with this script are `maproute` and `main`. Maproute was how I started writing the network code for this, and it's not too interesting.
 
-The easiest way to build is:
+The easiest way to build is (Fedora):
 ```
-# Ubuntu/Debian
-sudo apt install libcpr-dev libcurl4-openssl-dev libicu-dev
-
-# Then build:
-mkdir -p build
-cd build
+git submodule update --init
+sudo dnf install cmake g++ git meson libX11-devel libXrandr-devel libXinerama-devel libXcursor-devel libXi-devel mesa-libGL-devel libglvnd-devel libstdc++-static libicu-devel openssl-devel
+mkdir -p build && cd build
 cmake ..
 make -j$(nproc)
 ```
